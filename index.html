@@ -3,7 +3,7 @@
 <html>
 <head>
 	<meta charset="utf-8"/>
-	<title>하이퍼라운지 맛집정보</title>
+	<title>🚀 하이퍼라운지 맛집정보 🚀</title>
   <link rel="stylesheet" href="./css/reset.css">
 	<script src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
@@ -15,7 +15,7 @@
 		document.addEventListener('DOMContentLoaded', () => {
 
 			google.charts.load('current', { packages: ['corechart'] }).then(function () {
-				const query = new google.visualization.Query('http://spreadsheets.google.com/tq?key=1ubLPq1YcRh4vLp8K-A3s0aaTql92Z8otEYczeDg095E&pub=1');
+				const query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/1cuKz1qjs6wosA2H4EwT1LpKGa4FdLLocYAyQt2QkBjs/edit#gid=0');
 				query.send(function (response) {
 					let dataTable = response.getDataTable();
 					let jsonData = dataTable.toJSON();
