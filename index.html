@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>하이퍼라운지 맛집정보</title>
+	<link rel="stylesheet" type="text/css" href="./common/css/reset.css">
+	<script src="./common/js/script.js"></script>
+	<script src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+	<div id="map" style="width:100%;height:100%;"></div>
+	<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=01aa44b3340aad376f86b7901337986e&libraries=services"></script>
+	<script>
+		let markers = [];
+		document.addEventListener('DOMContentLoaded', () => {
+
+			google.charts.load('current', { packages: ['corechart'] }).then(function () {
+				const query = new google.visualization.Query('http://spreadsheets.google.com/tq?key=1ubLPq1YcRh4vLp8K-A3s0aaTql92Z8otEYczeDg095E&pub=1');
+				query.send(function (response) {
+					let dataTable = response.getDataTable();
+					let jsonData = dataTable.toJSON();
+					jsonData = JSON.parse(jsonData);
+
+					const a = jsonData.rows.filter((source) => source.c[3] != null)
+					a.map(source => {
+						let c = (source.c[5] !== null) ? source.c[5].v + ' ' + source.c[3].v : source.c[3].v;
+						searchPlaces(c)
+					})
+				});
+			});
+		})
+
+
+		const container = document.getElementById('map');
+		const options = {
+			center: new kakao.maps.LatLng(37.541, 126.986),
+			level: 8
+		};
+
+		let map = new kakao.maps.Map(container, options);
+
+		let geocoder = new kakao.maps.services.Geocoder();
+		let ps = new kakao.maps.services.Places();
+		let infowindow = new kakao.maps.InfoWindow({zIndex:1});
+
+		function searchPlaces(keyword) {
+			ps.keywordSearch(keyword, placesSearchCB); 
+		}
+
+		function placesSearchCB(data, status, pagination) {
+			if (status === kakao.maps.services.Status.OK) {
+				displayPlaces(data);
+			}
+		}
+		function displayPlaces(places) {
+			let fragment = document.createDocumentFragment(), 
+			bounds = new kakao.maps.LatLngBounds(), 
+			listStr = '';
+
+			for ( let i=0; i<places.length; i++ ) {
+				// 마커를 생성하고 지도에 표시합니다
+				let placePosition = new kakao.maps.LatLng(places[i].y, places[i].x),
+				marker = addMarker(placePosition, i), 
+				itemEl = getListItem(i, places[i]); // 검색 결과 항목 Element를 생성합니다
+
+				// 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해
+				// LatLngBounds 객체에 좌표를 추가합니다
+				bounds.extend(placePosition);
+
+				// 마커와 검색결과 항목에 mouseover 했을때
+				// 해당 장소에 인포윈도우에 장소명을 표시합니다
+				// mouseout 했을 때는 인포윈도우를 닫습니다
+				(function(marker, title) {
+					kakao.maps.event.addListener(marker, 'mouseover', function() {
+						displayInfowindow(marker, title);
+					});
+
+					kakao.maps.event.addListener(marker, 'mouseout', function() {
+						infowindow.close();
+					});
+
+					itemEl.onmouseover =  function () {
+						displayInfowindow(marker, title);
+					};
+
+					itemEl.onmouseout =  function () {
+						infowindow.close();
+					};
+				})(marker, places[i].place_name);
+
+				fragment.appendChild(itemEl);
+			}
+		}
+		function displayInfowindow(marker, title) {
+			let content = '<div style="padding:5px;z-index:1;">' + title + '</div>';
+
+			infowindow.setContent(content);
+			infowindow.open(map, marker);
+		}
+		function getListItem(index, places) {
+			var el = document.createElement('li'),
+			itemStr = '<span class="markerbg"></span>' +
+			'<div class="info">' + '<h5>' + places.place_name + '</h5>';
+
+			if (places.road_address_name) {
+				itemStr += '<span>' + places.road_address_name + '</span>' + '<span class="jibun gray">' +  places.address_name  + '</span>';
+			} else {
+				itemStr += '<span>' +  places.address_name  + '</span>'; 
+			}
+
+			itemStr += '<span class="tel">' + places.phone  + '</span>' + '</div>';
+
+			el.innerHTML = itemStr;
+			el.className = 'item';
+
+			return el;
+		}
+		function removeMarker() {
+			for ( var i = 0; i < markers.length; i++ ) {
+				markers[i].setMap(null);
+			}   
+			markers = [];
+		}
+		function addMarker(position, idx, title) {
+			marker = new kakao.maps.Marker({
+				position: position, // 마커의 위치
+			});
+
+			marker.setMap(map); // 지도 위에 마커를 표출합니다
+			markers.push(marker);  // 배열에 생성된 마커를 추가합니다
+
+			return marker;
+		}
+	</script>
+</body>
+</html>
