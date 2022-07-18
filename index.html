@@ -20,7 +20,7 @@
 					let dataTable = response.getDataTable();
 					let jsonData = dataTable.toJSON();
 					jsonData = JSON.parse(jsonData);
-
+					console.log(jsonData)
 					const a = jsonData.rows.filter((source) => source.c[3] != null)
 					a.map(source => {
 						let c = (source.c[5] !== null) ? source.c[5].v + ' ' + source.c[3].v : source.c[3].v;
